@@ -1,4 +1,4 @@
-﻿#!/usr/bin/env ruby
+# -*- coding: utf-8 -*-
 require 'rubygems'
 require 'em-websocket'
 
@@ -28,12 +28,13 @@ module ChatModule
   # ログイン処理
   def login(msg)
     msgArray = msg.strip.split(":")
-    name = msgArray[1][0...(msgArray[1].size-1)]
+    name = msgArray[1][0...(msgArray[1].size)]
     if @@connected_clients.has_key?(name) == false
       @loginName = name
       @@connected_clients[@loginName] = self
-      send(CMD_RETURN_LOGIN_OK)
+      send(CMD_RETURN_LOGIN_OK + ":" + timenow)
       puts "Login name is #{@loginName}"
+      sendBroadcast( "(" + timenow + ")Welcome [#{@loginName}] !")
     else
       send(CMD_RETURN_LOGIN_NG)
     end
@@ -51,7 +52,12 @@ module ChatModule
   end
 end
 
-EM::WebSocket.start(:host => "0.0.0.0", :port => 8080) { |ws|
+# 時刻を返す
+def timenow
+  return Time.now.strftime("%Y/%m/%d %H:%M:%S")
+end
+
+EM::WebSocket.start(:host => "localhost", :port => 3000) { |ws|
   ws.extend(ChatModule)
 
   ws.onopen{
@@ -64,7 +70,7 @@ EM::WebSocket.start(:host => "0.0.0.0", :port => 8080) { |ws|
     if ws.loginMessage?(msg)
       ws.login(msg)
     else
-      ws.sendBroadcast(msg)
+      ws.sendBroadcast("(" + timenow + ")" + msg)
     end
   }
   

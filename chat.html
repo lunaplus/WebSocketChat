@@ -1,8 +1,8 @@
 <html>
   <head>
-    <script src='js/swfobject.js'></script>
+    <!-- script src='js/swfobject.js'></script>
     <script src='js/FABridge.js'></script>
-    <script src='js/web_socket.js'></script>
+    <script src='js/web_socket.js'></script -->
     <script>
       var Socket = "MozWebSocket" in window ? MozWebSocket : WebSocket;
       var ws;
@@ -11,7 +11,7 @@
         var element = document.getElementById("reciveDataSpace");
         var p = document.createElement("p");
         p.appendChild(document.createTextNode(string));
-        element.appendChild(p);
+        element.insertBefore(p, element.firstChild);
       }
       
       function loginState(string) {
@@ -21,18 +21,20 @@
  
       function init() {
         Socket = "MozWebSocket" in window ? MozWebSocket : WebSocket;
-        ws = new Socket("ws://localhost:8080/");
+        ws = new Socket("ws://localhost:3000/");
         
         ws.onmessage = function(evt) {
-          if("[CreateLoginUserCmd_OK]" == evt.data){
-            loginState("login");
+          var splitData = evt.data.split(":");
+          if("[CreateLoginUserCmd_OK]" == splitData[0]){
+            splitData.shift();
+            loginState("login : " + splitData.join(":"));
             changeloginState();
           }
           else if("[CreateLoginUserCmd_NG]" == evt.data){
             loginState("The login name is already used. ");
           }
           else{
-            reciveDataSpace("Message: " + evt.data); 
+            reciveDataSpace(evt.data); 
           }
         };
          
@@ -73,21 +75,37 @@
         sendBtn.disabled = false;
       };
     </script>
+    <style type="text/css">
+      <!--
+	  #reciveDataSpace {
+	    overflow: scroll;
+	    height: 400px;
+	  }
+	  #divHeader {
+	    background-color: #cccccc;
+	  }
+	  #reciveArea {
+	    background-color: #fcfcfc;
+	  }
+	-->
+    </style>
   </head>
   <body onload="init();">
-    <div>
-      ÉçÉOÉCÉìñºÅF
-      <INPUT TYPE="text"   id="loginName"  size="20" value="">
-      <INPUT TYPE="button" id="buttonLogin"  VALUE="ÉçÉOÉCÉì" onClick="sendLogin()">
+    <div id="divHeader">
+      <div>
+	„É≠„Ç∞„Ç§„É≥ÂêçÔºö
+	<INPUT TYPE="text"   id="loginName"  size="20" value="">
+	<INPUT TYPE="button" id="buttonLogin"  VALUE="„É≠„Ç∞„Ç§„É≥" onClick="sendLogin()">
+      </div>
+      <div id="loginState"><p></p></div>
+      <div>
+	ÈÄÅ‰ø°„É°„ÉÉ„Çª„Éº„Ç∏:
+	<INPUT TYPE="text"   id="message"  size="20" value="">
+	<INPUT TYPE="button" id="buttonSend"  VALUE="ÈÄÅ‰ø°" disabled="true" onClick="sendMessage()">
+      </div>
     </div>
-    <div id="loginState"><p></p></div>
-    <div>
-      ëóêMÉÅÉbÉZÅ[ÉW:
-      <INPUT TYPE="text"   id="message"  size="20" value="">
-      <INPUT TYPE="button" id="buttonSend"  VALUE="ëóêM" disabled="true" onClick="sendMessage()">
-    </div>
-    <div>
-      éÛêMÉfÅ[É^
+    <div id="reciveArea">
+      Âèó‰ø°„Éá„Éº„Çø
       <div id="reciveDataSpace"></div>
     </div>
   </body>
